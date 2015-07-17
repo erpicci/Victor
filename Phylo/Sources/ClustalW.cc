@@ -237,21 +237,23 @@ namespace Phylo {
         size_t hgaps = 1, vgaps = 1;
         for (size_t i = 1; i <= N; i++) {
             for (size_t j = 1; j <= M; j++) {
-                double vgap = 0.9;
-                double hgap = 0.9;
+                double vgap = 0.0;
+                double hgap = 0.0;
 
+                /* Documentation is unclear about gaps values.
                 hgap = getPositionSpecificGOP(A, B, ss, j - 1)
                      + hgaps * getPositionSpecificGEP(A, B, j - 1);
 
                 vgap = getPositionSpecificGOP(B, A, ss, i - 1)
                      + vgaps * getPositionSpecificGEP(B, A, i - 1);
+                */
 
-hgap = (direction[i][j - 1] != LEFT)
-     ? getPositionSpecificGOP(A, B, ss, j - 1)
-     : getPositionSpecificGEP(A, B, j - 1);
-vgap = (direction[i - 1][j] != UP)
-     ? getPositionSpecificGOP(B, A, ss, i - 1)
-     : getPositionSpecificGEP(B, A, i - 1);
+                hgap = (direction[i][j - 1] != LEFT)
+                     ? getPositionSpecificGOP(A, B, ss, j - 1)
+                     : getPositionSpecificGEP(A, B, j - 1);
+                vgap = (direction[i - 1][j] != UP)
+                     ? getPositionSpecificGOP(B, A, ss, i - 1)
+                     : getPositionSpecificGEP(B, A, i - 1);
 
                 const double d = score[i-1][j-1] + S(A, B, i, j, ss, weights),
                              u = score[i - 1][j] - vgap,
