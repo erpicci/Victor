@@ -171,7 +171,7 @@ namespace Phylo {
         if (node.isLeaf()) {
             const string identifier = node.getLabel();
             const string residues   = sequences[identifier];
-            return (new MultipleAlignment(Sequence(identifier, residues)));
+            return new MultipleAlignment(Sequence(identifier, residues));
         }
 
 
@@ -193,12 +193,12 @@ namespace Phylo {
 
 #if VERBOSE==1
         cout << "Now aligning:" << endl;
-        for (size_t i = 0; i < A.getSize(); i++) {
-            cout << A.getSequence(i).getIdentifier() << endl;
+        for (size_t i = 0; i < A->getSize(); i++) {
+            cout << A->getSequence(i).getIdentifier() << endl;
         }
         cout << "---------- against ----------" << endl;
-        for (size_t j = 0; j < B.getSize(); j++) {
-            cout << B.getSequence(j).getIdentifier() << endl;
+        for (size_t j = 0; j < B->getSize(); j++) {
+            cout << B->getSequence(j).getIdentifier() << endl;
         }
         cout << endl << endl;
 #endif
@@ -281,7 +281,7 @@ namespace Phylo {
         // Returns multiple alignment
         delete A;
         delete B;
-        return (new MultipleAlignment(joint));
+        return new MultipleAlignment(joint);
     }
 
     
