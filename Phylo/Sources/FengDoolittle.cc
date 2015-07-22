@@ -75,12 +75,12 @@ namespace Phylo {
         RootedTree guide_tree = build_tree(d).asRootedTree();
 
         // Progressive alignments
-        return align(sequences, guide_tree);
+        return *align(sequences, guide_tree);
     }
 
 
 
-    MultipleAlignment &
+    MultipleAlignment *
     FengDoolittle::align(
         Sequences &sequences,
         const RootedTree &node) const {
@@ -89,7 +89,7 @@ namespace Phylo {
         if (node.isLeaf()) {
             const string identifier = node.getLabel(),
                          residues   = sequences[identifier];
-            return *(new MultipleAlignment(Sequence(identifier, residues)));
+            return new MultipleAlignment(Sequence(identifier, residues));
         }
 
 
@@ -102,30 +102,30 @@ namespace Phylo {
 
         ////////////////////////////////////////////////////////////////
         // Two MSAs: performs alignment
-        const MultipleAlignment A = align(sequences, node[0]),
-                                B = align(sequences, node[1]);
+        const MultipleAlignment *A = align(sequences, node[0]),
+                                *B = align(sequences, node[1]);
         double max_score = -999999.0;
         string horizontal, vertical;
 
 
 #if VERBOSE==1
         cout << "Now aligning:" << endl;
-        for (size_t i = 0; i < A.getSize(); i++) {
-            cout << A.getSequence(i).getIdentifier() << endl;
+        for (size_t i = 0; i < A->getSize(); i++) {
+            cout << A->getSequence(i).getIdentifier() << endl;
         }
         cout << "---------- against ----------" << endl;
-        for (size_t j = 0; j < B.getSize(); j++) {
-            cout << B.getSequence(j).getIdentifier() << endl;
+        for (size_t j = 0; j < B->getSize(); j++) {
+            cout << B->getSequence(j).getIdentifier() << endl;
         }
         cout << endl << endl;
 #endif
 
 
         // Finds best alignment
-        for (size_t i = 0; i < A.getSize(); i++) {
-            const string seqA = replace_gaps(A.getSequence(i).getResidues());
-            for (size_t j = 0; j < B.getSize(); j++) {
-                const string seqB = replace_gaps(B.getSequence(j).getResidues());
+        for (size_t i = 0; i < A->getSize(); i++) {
+            const string seqA = replace_gaps(A->getSequence(i).getResidues());
+            for (size_t j = 0; j < B->getSize(); j++) {
+                const string seqB = replace_gaps(B->getSequence(j).getResidues());
 
                 AlignmentData *data = new SequenceData(2, seqA, seqB, "", "");
                 ScoringS2S scoring_scheme(&matrix, data, nullptr, 1.0);
@@ -143,9 +143,9 @@ namespace Phylo {
 
         // Builds a new MSA using best alignment
         vector<Sequence> new_sequences;
-        for (size_t i = 0; i < A.getSize(); i++) {
-            const string identifier = A.getSequence(i).getIdentifier(),
-                         sequence   = A.getSequence(i).getResidues();
+        for (size_t i = 0; i < A->getSize(); i++) {
+            const string identifier = A->getSequence(i).getIdentifier(),
+                         sequence   = A->getSequence(i).getResidues();
             size_t cursor   = 0;
             string residues = "";
             for (char residue : horizontal) {
@@ -154,9 +154,9 @@ namespace Phylo {
             new_sequences.push_back(Sequence(identifier, residues));
         }
         
-        for (size_t i = 0; i < B.getSize(); i++) {
-            const string identifier = B.getSequence(i).getIdentifier(),
-                         sequence   = B.getSequence(i).getResidues();
+        for (size_t i = 0; i < B->getSize(); i++) {
+            const string identifier = B->getSequence(i).getIdentifier(),
+                         sequence   = B->getSequence(i).getResidues();
             size_t cursor   = 0;
             string residues = "";
             for (char residue : vertical) {
@@ -167,7 +167,7 @@ namespace Phylo {
 
 
         // Returns multiple alignmnet
-        return *(new MultipleAlignment(new_sequences));
+        return new MultipleAlignment(new_sequences);
     }
 
 }  // namespace Phylo

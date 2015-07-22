@@ -137,7 +137,7 @@ class ClustalW: public MultipleAlignmentAlgorithm {
      * @param[in]       weights   Weights
      * @return Multiple sequence alignment
      */
-    MultipleAlignment &align(
+    MultipleAlignment *align(
         Sequences &sequences,
         const RootedTree &node,
         Weights &weights) const;

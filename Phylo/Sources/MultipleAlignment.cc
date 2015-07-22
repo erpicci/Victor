@@ -173,7 +173,7 @@ namespace Phylo {
 
 
 
-    string &
+    string
     MultipleAlignment::getResidues(const size_t position) const {
         char *s = new char[getSize()];
         size_t idx = 0;
@@ -184,7 +184,9 @@ namespace Phylo {
             }
         }
 
-        return *(new string(s));
+        string result(s);
+        delete [] s;
+        return result;
     }
 
 

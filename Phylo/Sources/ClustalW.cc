@@ -125,7 +125,7 @@ namespace Phylo {
         Weights weights = getWeights(guide_tree);
 
         // Progressive alignments
-        return align(sequences, guide_tree, weights);
+        return *align(sequences, guide_tree, weights);
     }
 
 
@@ -160,7 +160,7 @@ namespace Phylo {
 
 
 
-    MultipleAlignment &
+    MultipleAlignment *
     ClustalW::align(
         Sequences &sequences,
         const RootedTree &node,
@@ -171,7 +171,7 @@ namespace Phylo {
         if (node.isLeaf()) {
             const string identifier = node.getLabel();
             const string residues   = sequences[identifier];
-            return *(new MultipleAlignment(Sequence(identifier, residues)));
+            return (new MultipleAlignment(Sequence(identifier, residues)));
         }
 
 
@@ -184,11 +184,11 @@ namespace Phylo {
 
         ////////////////////////////////////////////////////////////////
         // Two sequences: performs alignment
-        const MultipleAlignment A   = align(sequences, node[0], weights),
-                                B   = align(sequences, node[1], weights);
+        const MultipleAlignment *A   = align(sequences, node[0], weights),
+                                *B   = align(sequences, node[1], weights);
         const SubstitutionMatrix ss(getSubstitutionMatrix(node));
-        const size_t M = A.getLength(),
-                     N = B.getLength();
+        const size_t M = A->getLength(),
+                     N = B->getLength();
 
 
 #if VERBOSE==1
@@ -217,8 +217,8 @@ namespace Phylo {
         score[0][0]     = 0;
         direction[0][0] = NONE;
         for (size_t j = 1; j <= M; j++) {
-            const double GOP = getPositionSpecificGOP(A, B, ss, 0);
-            const double GEP = getPositionSpecificGEP(A, B, j - 1);
+            const double GOP = getPositionSpecificGOP(*A, *B, ss, 0);
+            const double GEP = getPositionSpecificGEP(*A, *B, j - 1);
             score[0][j]      = -(GOP + GEP * (j - 1));
             direction[0][j]  = LEFT;
         }
@@ -226,8 +226,8 @@ namespace Phylo {
 
         // Initializes first column
         for (size_t i = 1; i <= N; i++) {
-            const double GOP = getPositionSpecificGOP(B, A, ss, 0),
-                         GEP = getPositionSpecificGEP(B, A, i - 1);
+            const double GOP = getPositionSpecificGOP(*B, *A, ss, 0),
+                         GEP = getPositionSpecificGEP(*B, *A, i - 1);
             score[i][0]      = -(GOP + GEP * (i - 1));
             direction[i][0]  = UP;
         }
@@ -249,13 +249,13 @@ namespace Phylo {
                 */
 
                 hgap = (direction[i][j - 1] != LEFT)
-                     ? getPositionSpecificGOP(A, B, ss, j - 1)
-                     : getPositionSpecificGEP(A, B, j - 1);
+                     ? getPositionSpecificGOP(*A, *B, ss, j - 1)
+                     : getPositionSpecificGEP(*A, *B, j - 1);
                 vgap = (direction[i - 1][j] != UP)
-                     ? getPositionSpecificGOP(B, A, ss, i - 1)
-                     : getPositionSpecificGEP(B, A, i - 1);
+                     ? getPositionSpecificGOP(*B, *A, ss, i - 1)
+                     : getPositionSpecificGEP(*B, *A, i - 1);
 
-                const double d = score[i-1][j-1] + S(A, B, i, j, ss, weights),
+                const double d = score[i-1][j-1] + S(*A, *B, i, j, ss, weights),
                              u = score[i - 1][j] - vgap,
                              l = score[i][j - 1] - hgap;
 
@@ -271,15 +271,17 @@ namespace Phylo {
 
 
         // Traceback
-        vector<string> residues = traceback(A, B, direction);
+        vector<string> residues = traceback(*A, *B, direction);
 
 
         // Builds sequences
-        vector<Sequence> joint = join(A, B, residues);
+        vector<Sequence> joint = join(*A, *B, residues);
 
 
         // Returns multiple alignment
-        return *(new MultipleAlignment(joint));
+        delete A;
+        delete B;
+        return (new MultipleAlignment(joint));
     }
 
     

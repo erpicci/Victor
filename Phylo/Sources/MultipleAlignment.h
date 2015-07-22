@@ -130,7 +130,7 @@ public:
      * @param[in]       position  Index of the columng.
      * @return Residues at given position
      */
-    string &getResidues(const size_t position) const;
+    string getResidues(const size_t position) const;
 
     /** @brief Returns number of residues (or gaps) at given position.
      *

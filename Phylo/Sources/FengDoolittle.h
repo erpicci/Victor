@@ -94,7 +94,7 @@ class FengDoolittle: public MultipleAlignmentAlgorithm {
      * @param[in]       node      Next node of the guide tree
      * @return Multiple sequence alignment
      */
-    MultipleAlignment &align(
+    MultipleAlignment *align(
         Sequences &sequences,
         const RootedTree &node) const;
 };
