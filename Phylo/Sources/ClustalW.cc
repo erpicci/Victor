@@ -207,14 +207,14 @@ namespace Phylo {
         // Allocates score and traceback matrices
         vector<vector<double>> score(N + 1);
         vector<vector<Direction>> direction(N + 1);
-        vector<vector<size_t>> hgapT(N + 1);
-        vector<vector<size_t>> vgapT(N + 1);
+        vector<vector<size_t>> hgaps(N + 1);
+        vector<vector<size_t>> vgaps(N + 1);
         for (size_t i = 0; i <= N; i++) {
             score[i]     = vector<double>(M + 1);
             direction[i] = vector<Direction>(M + 1);
 
-            hgapT[i] = vector<size_t>(M + 1);
-            vgapT[i] = vector<size_t>(M + 1);
+            hgaps[i] = vector<size_t>(M + 1);
+            vgaps[i] = vector<size_t>(M + 1);
         }
 
 
@@ -227,8 +227,8 @@ namespace Phylo {
             score[0][j]      = -(GOP + GEP * (j - 1));
             direction[0][j]  = LEFT;
 
-            hgapT[0][j] = 1;
-            vgapT[0][j] = 1;
+            hgaps[0][j] = 1;
+            vgaps[0][j] = 1;
         }
 
 
@@ -239,32 +239,23 @@ namespace Phylo {
             score[i][0]      = -(GOP + GEP * (i - 1));
             direction[i][0]  = UP;
 
-            hgapT[i][0] = 1;
-            vgapT[i][0] = 1;
+            hgaps[i][0] = 1;
+            vgaps[i][0] = 1;
         }
 
 
         // Calculates score matrix
-        size_t hgaps = 1, vgaps = 1;
         for (size_t i = 1; i <= N; i++) {
             for (size_t j = 1; j <= M; j++) {
                 double vgap = 0.0;
                 double hgap = 0.0;
 
-                /* Documentation is unclear about gaps values.
-                hgap = getPositionSpecificGOP(A, B, ss, j - 1)
-                     + hgaps * getPositionSpecificGEP(A, B, j - 1);
-
-                vgap = getPositionSpecificGOP(B, A, ss, i - 1)
-                     + vgaps * getPositionSpecificGEP(B, A, i - 1);
-                */
-
                 hgap = (direction[i][j - 1] != LEFT)
                      ? getPositionSpecificGOP(*A, *B, ss, j - 1)
-                     : getPositionSpecificGEP(*A, *B, j - 1) * hgapT[i][j - 1];
+                     : getPositionSpecificGEP(*A, *B, j - 1) * hgaps[i][j - 1];
                 vgap = (direction[i - 1][j] != UP)
                      ? getPositionSpecificGOP(*B, *A, ss, i - 1)
-                     : getPositionSpecificGEP(*B, *A, i - 1) * vgapT[i - 1][j];
+                     : getPositionSpecificGEP(*B, *A, i - 1) * vgaps[i - 1][j];
 
                 const double d = score[i-1][j-1] + S(*A, *B, i, j, ss, weights),
                              u = score[i - 1][j] - vgap,
@@ -275,21 +266,17 @@ namespace Phylo {
                 direction[i][j] = dir;
 
                 if (dir == UP) {
-                    vgapT[i][j] = vgapT[i - 1][j] + 1;
-                    hgapT[i][j] = 1;
+                    vgaps[i][j] = vgaps[i - 1][j] + 1;
+                    hgaps[i][j] = 1;
                 }
                 else if (dir == LEFT) {
-                    vgapT[i][j] = 1;
-                    hgapT[i][j] = hgapT[i][j - 1] + 1;
+                    vgaps[i][j] = 1;
+                    hgaps[i][j] = hgaps[i][j - 1] + 1;
                 }
                 else {
-                    vgapT[i][j] = 1;
-                    hgapT[i][j] = 1;
+                    vgaps[i][j] = 1;
+                    hgaps[i][j] = 1;
                 }
-
-                // Written in a LP-fashion way for performance reasons
-                //vgaps = (dir == UP)   * (vgaps + 1);
-                //hgaps = (dir == LEFT) * (hgaps + 1);
             }
         }
 
