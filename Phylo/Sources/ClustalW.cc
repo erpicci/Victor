@@ -295,7 +295,7 @@ namespace Phylo {
                      N = B.getLength(),
                      avg = matrix.getAvgMismatchScore(),
                      identity = A.getPercentIdentity();
-        return gap_open + log(min(M, N)) * avg * identity;
+        return gap_open + log10(min(M, N)) * avg * identity;
     }
 
 
@@ -306,7 +306,7 @@ namespace Phylo {
         const MultipleAlignment &B) const {
         const double N = A.getLength(),
                      M = B.getLength();
-        return gap_extension * (1.0 + abs(log(N / M)));
+        return gap_extension * (1.0 + abs(log10(N / M)));
     }
 
 
