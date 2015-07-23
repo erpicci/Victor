@@ -207,9 +207,14 @@ namespace Phylo {
         // Allocates score and traceback matrices
         vector<vector<double>> score(N + 1);
         vector<vector<Direction>> direction(N + 1);
+        vector<vector<size_t>> hgapT(N + 1);
+        vector<vector<size_t>> vgapT(N + 1);
         for (size_t i = 0; i <= N; i++) {
             score[i]     = vector<double>(M + 1);
             direction[i] = vector<Direction>(M + 1);
+
+            hgapT[i] = vector<size_t>(M + 1);
+            vgapT[i] = vector<size_t>(M + 1);
         }
 
 
@@ -221,6 +226,9 @@ namespace Phylo {
             const double GEP = getPositionSpecificGEP(*A, *B, j - 1);
             score[0][j]      = -(GOP + GEP * (j - 1));
             direction[0][j]  = LEFT;
+
+            hgapT[0][j] = 1;
+            vgapT[0][j] = 1;
         }
 
 
@@ -230,6 +238,9 @@ namespace Phylo {
                          GEP = getPositionSpecificGEP(*B, *A, i - 1);
             score[i][0]      = -(GOP + GEP * (i - 1));
             direction[i][0]  = UP;
+
+            hgapT[i][0] = 1;
+            vgapT[i][0] = 1;
         }
 
 
@@ -250,10 +261,10 @@ namespace Phylo {
 
                 hgap = (direction[i][j - 1] != LEFT)
                      ? getPositionSpecificGOP(*A, *B, ss, j - 1)
-                     : getPositionSpecificGEP(*A, *B, j - 1);
+                     : getPositionSpecificGEP(*A, *B, j - 1) * hgapT[i][j - 1];
                 vgap = (direction[i - 1][j] != UP)
                      ? getPositionSpecificGOP(*B, *A, ss, i - 1)
-                     : getPositionSpecificGEP(*B, *A, i - 1);
+                     : getPositionSpecificGEP(*B, *A, i - 1) * vgapT[i - 1][j];
 
                 const double d = score[i-1][j-1] + S(*A, *B, i, j, ss, weights),
                              u = score[i - 1][j] - vgap,
@@ -263,9 +274,22 @@ namespace Phylo {
                 score[i][j]     = max(d, max(u, l));
                 direction[i][j] = dir;
 
+                if (dir == UP) {
+                    vgapT[i][j] = vgapT[i - 1][j] + 1;
+                    hgapT[i][j] = 1;
+                }
+                else if (dir == LEFT) {
+                    vgapT[i][j] = 1;
+                    hgapT[i][j] = hgapT[i][j - 1] + 1;
+                }
+                else {
+                    vgapT[i][j] = 1;
+                    hgapT[i][j] = 1;
+                }
+
                 // Written in a LP-fashion way for performance reasons
-                vgaps = (dir == UP)   * (vgaps + 1);
-                hgaps = (dir == LEFT) * (hgaps + 1);
+                //vgaps = (dir == UP)   * (vgaps + 1);
+                //hgaps = (dir == LEFT) * (hgaps + 1);
             }
         }
 
