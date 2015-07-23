@@ -226,8 +226,7 @@ namespace Phylo {
             const double GEP = getPositionSpecificGEP(*A, *B, j - 1);
             score[0][j]      = -(GOP + GEP * (j - 1));
             direction[0][j]  = LEFT;
-
-            hgaps[0][j] = 1;
+            hgaps[0][j] = 0;
             vgaps[0][j] = 1;
         }
 
@@ -238,9 +237,8 @@ namespace Phylo {
                          GEP = getPositionSpecificGEP(*B, *A, i - 1);
             score[i][0]      = -(GOP + GEP * (i - 1));
             direction[i][0]  = UP;
-
             hgaps[i][0] = 1;
-            vgaps[i][0] = 1;
+            vgaps[i][0] = 0;
         }
 
 
@@ -265,18 +263,9 @@ namespace Phylo {
                 score[i][j]     = max(d, max(u, l));
                 direction[i][j] = dir;
 
-                if (dir == UP) {
-                    vgaps[i][j] = vgaps[i - 1][j] + 1;
-                    hgaps[i][j] = 1;
-                }
-                else if (dir == LEFT) {
-                    vgaps[i][j] = 1;
-                    hgaps[i][j] = hgaps[i][j - 1] + 1;
-                }
-                else {
-                    vgaps[i][j] = 1;
-                    hgaps[i][j] = 1;
-                }
+                // Written in term of Linear programming for performance
+                hgaps[i][j] = 1 + (dir == LEFT) * hgaps[i][j - 1];
+                vgaps[i][j] = 1 + (dir == UP)   * vgaps[i - 1][j];
             }
         }
 
